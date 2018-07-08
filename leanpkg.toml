@@ -1,0 +1,9 @@
+[package]
+name = "birkhoff"
+version = "0.1"
+lean_version = "3.4.1"
+path = "src"
+
+[dependencies]
+tup = {git = "https://github.com/fgdorais/tup", rev = "0a1c0e570cd95ce95fadd216e50ddd460be4211d"}
+uniq = {git = "https://github.com/fgdorais/uniq", rev = "2e9465f2db4304872390d3f3ec7e92506eac4891"}
