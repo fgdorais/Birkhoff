@@ -9,6 +9,7 @@ universe u
 variables {σ : Type u} {sig : σ → ℕ}
 include sig
 
+@[reducible]
 definition subst (sub : ℕ → term sig) : term sig → term sig :=
 eval (term_alg sig) sub
 
@@ -35,8 +36,10 @@ lemma subst_eval {α : Type*} (a : alg sig α) {sub : ℕ → term sig} {val : �
 
 namespace subst
 
+@[reducible]
 definition ident : ℕ → term sig := λ n, term.var n
 
+@[reducible]
 definition comp (sub₁ sub₂ : ℕ → term sig) : ℕ → term sig :=
 λ n, subst sub₂ (sub₁ n)
 
