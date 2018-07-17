@@ -20,49 +20,52 @@ definition proves (e : eqn sig) := proof ax e.fst e.snd
 
 infix ` ⊢ `:20 := proves
 
+namespace proof
 variable {ax}
 
-definition prf_reflexivity : Π t : term sig, ax ⊢ t ≡ t
-| (term.var n) := proof.var ax n
-| (term.app s ts) := proof.app s (λ i, prf_reflexivity (ts i))
+definition reflexivity : Π t : term sig, ax ⊢ t ≡ t
+| (term.var n) := var ax n
+| (term.app s ts) := app s (λ i, reflexivity (ts i))
 
-definition prf_symmetry {{t u : term sig}} : (ax ⊢ t ≡ u) → (ax ⊢ u ≡ t) :=
-λ ptu, proof.euc u t u (prf_reflexivity u) ptu
+definition symmetry {{t u : term sig}} : (ax ⊢ t ≡ u) → (ax ⊢ u ≡ t) :=
+λ ptu, euc u t u (reflexivity u) ptu
 
-definition prf_transitivity {{t u v : term sig}} : (ax ⊢ t ≡ u) → (ax ⊢ u ≡ v) → (ax ⊢ t ≡ v) :=
-λ ptu puv, proof.euc t v u ptu (prf_symmetry puv)
+definition transitivity {{t u v : term sig}} : (ax ⊢ t ≡ u) → (ax ⊢ u ≡ v) → (ax ⊢ t ≡ v) :=
+λ ptu puv, euc t v u ptu (symmetry puv)
 
-definition prf_substitution (sub : ℕ → term sig) : 
+definition substitution (sub : ℕ → term sig) : 
 Π {{t u : term sig}}, proof ax t u → proof ax (subst sub t) (subst sub u)
-| ._ ._ (proof.axm ax i sub₀) :=
+| ._ ._ (axm ax i sub₀) :=
   have ht : subst (subst.comp sub₀ sub) (ax i).fst = subst sub (subst sub₀ (ax i).fst), by rw subst.subst_subst,
   have hu : subst (subst.comp sub₀ sub) (ax i).snd = subst sub (subst sub₀ (ax i).snd), by rw subst.subst_subst,
-  eq.rec_on ht (eq.rec_on hu (proof.axm ax i (subst.comp sub₀ sub)))
-| (term.var .(n)) (term.var .(n)) (proof.var ax n) := 
-  prf_reflexivity (sub n)
-| (term.app ._ ts) (term.app ._ us) (proof.app s ps) :=
+  eq.rec_on ht (eq.rec_on hu (axm ax i (subst.comp sub₀ sub)))
+| (term.var .(n)) (term.var .(n)) (var ax n) := 
+  reflexivity (sub n)
+| (term.app .(s) ts) (term.app .(s) us) (app s ps) :=
   have ht : term.app s (tup.map (subst sub) ts) = subst sub (term.app s ts), by rw subst_app,
   have hu : term.app s (tup.map (subst sub) us) = subst sub (term.app s us), by rw subst_app,
-  have Π i, ax ⊢ (subst sub ts[i]) ≡ (subst sub us[i]), from λ i, prf_substitution (ps i),
-  eq.rec_on ht (eq.rec_on hu (proof.app s this))
-| .(t) .(u) (proof.euc t u v htv huv) :=
-  proof.euc (subst sub t) (subst sub u) (subst sub v) (prf_substitution htv) (prf_substitution huv)
+  have Π i, ax ⊢ (subst sub ts[i]) ≡ (subst sub us[i]), from λ i, substitution (ps i),
+  eq.rec_on ht (eq.rec_on hu (app s this))
+| .(t) .(u) (euc t u v htv huv) :=
+  euc (subst sub t) (subst sub u) (subst sub v) (substitution htv) (substitution huv)
 
-definition prf_replacement {{sub₁ sub₂ : ℕ → term sig}} (h : Π n, ax ⊢ sub₁ n ≡ sub₂ n) :
+definition replacement {{sub₁ sub₂ : ℕ → term sig}} (h : Π n, ax ⊢ sub₁ n ≡ sub₂ n) :
 Π (t : term sig), ax ⊢ subst sub₁ t ≡ subst sub₂ t
 | (term.var n) := h n
 | (term.app s ts) :=
   have h₁ : term.app s (tup.map (subst sub₁) ts) = subst sub₁ (term.app s ts), by rw subst_app, 
   have h₂ : term.app s (tup.map (subst sub₂) ts) = subst sub₂ (term.app s ts), by rw subst_app,
-  eq.rec_on h₁ (eq.rec_on h₂ (proof.app s (λ i, prf_replacement (ts i))))
+  eq.rec_on h₁ (eq.rec_on h₂ (app s (λ i, replacement (ts i))))
 
-definition prf_translate {I' : Type*} {ax' : I' → eqn sig} (p : Π (i : I'), ax ⊢ (ax' i)) :
+definition translate {I' : Type*} {ax' : I' → eqn sig} (p : Π (i : I'), ax ⊢ (ax' i)) :
 ∀ {{t u : term sig}}, proof ax' t u → proof ax t u
-| ._ ._ (proof.axm ax' i sub) := 
-  prf_substitution sub (p i)
-| ._ ._ (proof.var ax' n) := 
-  proof.var ax n
-| ._ ._ (proof.app s ps) := 
-  proof.app s (λ i, prf_translate (ps i))
-| ._ ._ (proof.euc t u v ptv puv) :=
-  proof.euc t u v (prf_translate ptv) (prf_translate puv)
+| ._ ._ (axm ax' i sub) := 
+  substitution sub (p i)
+| ._ ._ (var ax' n) := 
+  var ax n
+| ._ ._ (app s ps) := 
+  app s (λ i, translate (ps i))
+| ._ ._ (euc t u v ptv puv) :=
+  euc t u v (translate ptv) (translate puv)
+
+end proof
