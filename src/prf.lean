@@ -56,10 +56,10 @@ definition prf_replacement {{sub₁ sub₂ : ℕ → term sig}} (h : Π n, ax �
   have h₂ : term.app s (tup.map (subst sub₂) ts) = subst sub₂ (term.app s ts), by rw subst_app,
   eq.rec_on h₁ (eq.rec_on h₂ (proof.app s (λ i, prf_replacement (ts i))))
 
-definition prf_translate {I' : Type*} {ax' : I' → eqn sig} (t : Π (i : I'), ax ⊢ (ax' i)) :
+definition prf_translate {I' : Type*} {ax' : I' → eqn sig} (p : Π (i : I'), ax ⊢ (ax' i)) :
 ∀ {{t u : term sig}}, proof ax' t u → proof ax t u
 | ._ ._ (proof.axm ax' i sub) := 
-  prf_substitution sub (t i)
+  prf_substitution sub (p i)
 | ._ ._ (proof.var ax' n) := 
   proof.var ax n
 | ._ ._ (proof.app s ps) := 
