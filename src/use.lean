@@ -25,7 +25,7 @@ definition eval_use (a : alg sig α) : Π (t : term sig), α ^ (use t) → α
 | (term.var n) val := 
   val ⟨n, nat.lt_succ_self n⟩
 | (term.app s ts) val := 
-  a.app s (λ i, eval_use (ts i) (tup.take_of_le (use_app i) val))
+  a.app s (λ i, eval_use (ts i) (tup.take (use_app i) val))
 
 lemma eval_use_eq_eval {a : alg sig α} {val : ℕ → α} : 
 Π (t : term sig), eval_use a t (tup.bar val (use t)) = eval a val t
@@ -33,10 +33,10 @@ lemma eval_use_eq_eval {a : alg sig α} {val : ℕ → α} :
 | (term.app s ts) := 
   let m := use (term.app s ts) in
   let valm := tup.bar val m in
-  have ∀ i, tup.take_of_le (use_app i) valm = tup.bar val (use ts[i]), 
+  have ∀ i, tup.take (use_app i) valm = tup.bar val (use ts[i]), 
   from λ i, tup.take_bar val (use_app i),
   have ∀ i, 
-  eval_use a ts[i] (tup.take_of_le (use_app i) valm)
+  eval_use a ts[i] (tup.take (use_app i) valm)
   = eval_use a ts[i] (tup.bar val (use ts[i])),
   begin 
   intro i, 
@@ -44,7 +44,7 @@ lemma eval_use_eq_eval {a : alg sig α} {val : ℕ → α} :
   end,
   calc 
   eval_use a (term.app s ts) valm
-      = a.app s (λ i, eval_use a ts[i] (tup.take_of_le (use_app i) valm)) : rfl
+      = a.app s (λ i, eval_use a ts[i] (tup.take (use_app i) valm)) : rfl
   ... = a.app s (λ i, eval_use a ts[i] (tup.bar val (use ts[i]))) : by rw tup.ext this
   ... = a.app s (λ i, eval a val ts[i]) : by rw tup.ext (λ i, eval_use_eq_eval (ts i))
   ... = eval a val (term.app s ts) : rfl
@@ -62,14 +62,22 @@ eval a val₁ t
 
 @[reducible]
 definition eval_use_of_le (a : alg sig α) {n : ℕ} (val : α ^ n) (t : term sig) : 
-use t ≤ n → α := λ h, eval_use a t (tup.take_of_le h val)
+use t ≤ n → α := λ h, eval_use a t (tup.take h val)
+
+lemma eval_use_of_le_app (a : alg sig α) {n : ℕ} (val : α ^ n) 
+{s : σ} {ts : term sig ^ sig s} (h : use (term.app s ts) ≤ n) :
+eval_use_of_le a val (term.app s ts) h = a.app s (λ i, eval_use_of_le a val ts[i] (le_trans (use_app i) h)) :=
+begin
+simp [eval_use_of_le, eval_use]
+end
+
 
 lemma eval_eq_eval_use_of_le {a : alg sig α} {val : ℕ → α} (t : term sig) {m : ℕ} {hm : use t ≤ m} :
 eval a val t = eval_use_of_le a (tup.bar val m) t hm :=
 calc
 eval a val t
     = eval_use a t (tup.bar val (use t)) : by rw eval_use_eq_eval
-... = eval_use a t (tup.take_of_le hm (tup.bar val m)) : by rw tup.take_bar
+... = eval_use a t (tup.take hm (tup.bar val m)) : by rw tup.take_bar
 ... = eval_use_of_le a (tup.bar val m) t hm : rfl
 
 definition sat_use (a : alg sig α) (e : eqn sig) : Prop :=
