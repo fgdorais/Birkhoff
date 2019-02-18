@@ -13,9 +13,9 @@ instance prf_congr : congruence (term_alg sig) :=
 { r := λ t u, nonempty (proof ax t u)
 , iseqv := 
   mk_equivalence _ 
-    (λ t, ⟨prf_reflexivity t⟩) 
-    (λ t u ⟨ptu⟩, ⟨prf_symmetry ptu⟩)
-    (λ t u v ⟨ptu⟩ ⟨puv⟩, ⟨prf_transitivity ptu puv⟩),
+    (λ t, ⟨proof.reflexivity t⟩) 
+    (λ t u ⟨ptu⟩, ⟨proof.symmetry ptu⟩)
+    (λ t u v ⟨ptu⟩ ⟨puv⟩, ⟨proof.transitivity ptu puv⟩),
   app := λ s ts us h,
   have nonempty (Π i : fin (sig s), proof ax (ts i) (us i)), 
   from fin.choice h,

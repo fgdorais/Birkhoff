@@ -10,7 +10,7 @@ universe u
 variables {σ : Type u} {sig : σ → ℕ} {I : Type*} (ax : I → eqn sig)
 include sig ax
 
-lemma prf_sound {α : Type*} (a : alg sig α) (ha : ∀ i, sat a (ax i)) :
+lemma proof.sound {α : Type*} (a : alg sig α) (ha : ∀ i, sat a (ax i)) :
 ∀ {t u : term sig}, proof ax t u → (a ⊧ t ≡ u)
 | ._ ._ (proof.axm ax i sub) val :=
   let val' := λ n, eval a val (sub n) in
@@ -22,7 +22,7 @@ lemma prf_sound {α : Type*} (a : alg sig α) (ha : ∀ i, sat a (ax i)) :
 | (term.var .(n)) (term.var .(n)) (proof.var ax n) val := rfl
 | (term.app .(s) ts) (term.app .(s) us) (proof.app s ps) val :=
   have tup.map (eval a val) ts = tup.map (eval a val) us,
-  from tup.ext (λ i, prf_sound (ps i) val),
+  from tup.ext (λ i, proof.sound (ps i) val),
   calc
   eval a val (term.app s ts) 
       = a.app s (tup.map (eval a val) ts) : by rw eval_app
@@ -31,8 +31,8 @@ lemma prf_sound {α : Type*} (a : alg sig α) (ha : ∀ i, sat a (ax i)) :
 | .(t) .(u) (proof.euc t u v ptv puv) val :=
   calc
   eval a val t
-      = eval a val v : by rw prf_sound ptv val
-  ... = eval a val u : by rw prf_sound puv val
+      = eval a val v : by rw proof.sound ptv val
+  ... = eval a val u : by rw proof.sound puv val
 
 theorem soundness {{t u : term sig}} : (ax ⊢ t ≡ u) → (ax ⊨ t ≡ u) := 
-λ p _ a ha, prf_sound ax a ha p
+λ p _ a ha, proof.sound ax a ha p
